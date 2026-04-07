@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <title>Checklist Tester</title>
+    <title>ПростоВверх</title>
     <link rel="stylesheet" href="styles.css" />
     <link
       rel="stylesheet"
@@ -12,20 +12,37 @@
   <body>
     <div id="app">
       <div class="header">
-        <div class="title">QA Checklist</div>
-        <div class="close" id="close"><i class="fas fa-times"></i></div>
-        <span id="minimize"><i class="fas fa-window-minimize"></i></span>
+        <div class="title">ПростоВверх</div>
+        <div class="buttons">
+          <div class="menu" id="menu"><i class="fas fa-bars"></i></div>
+          <div class="close" id="close"><i class="fas fa-times"></i></div>
+          <span id="minimize"><i class="fas fa-window-minimize"></i></span>
+        </div>
       </div>
-      <div id="step"></div>
-      <div class="controls">
-        <button class="nav-btn" id="prev">
-          <i class="fas fa-arrow-left"></i> Назад
+      <!-- Экран выбора чеклиста -->
+      <div id="checklist-selector" class="selector-screen">
+        <h2>Выберите чеклист</h2>
+        <button id="btn-qa" class="selector-btn">
+          <i class="fas fa-check-circle"></i> QA Checklist
         </button>
-        <button class="nav-btn" id="next">
-          Далее <i class="fas fa-arrow-right"></i>
+        <button id="btn-marketing" class="selector-btn">
+          <i class="fas fa-chart-line"></i> Marketing Audit
         </button>
+      </div>
+      <!-- Основной интерфейс (скрыт до выбора) -->
+      <div id="main-interface" style="display: none">
+        <div id="step"></div>
+        <div class="controls">
+          <button class="nav-btn" id="prev">
+            <i class="fas fa-arrow-left"></i> Назад
+          </button>
+          <button class="nav-btn" id="next">
+            Далее <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
       </div>
     </div>
     <script src="main.js"></script>
   </body>
 </html>
+<!doctype html>

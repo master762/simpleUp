@@ -1,49 +1,112 @@
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (объявлены первыми) ==========
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return str.replace(/[&<>]/g, (m) => {
+    if (m === "&") return "&amp;";
+    if (m === "<") return "&lt;";
+    if (m === ">") return "&gt;";
+    return m;
+  });
+}
+
+function showToast(message, type = "info") {
+  const toast = document.createElement("div");
+  toast.className = "toast-notification";
+
+  let icon = "";
+  let bgColor = "rgba(47, 128, 237, 0.95)";
+  switch (type) {
+    case "success":
+      icon = '<i class="fas fa-check-circle"></i>';
+      bgColor = "rgba(40, 167, 69, 0.95)";
+      break;
+    case "error":
+      icon = '<i class="fas fa-exclamation-circle"></i>';
+      bgColor = "rgba(220, 53, 69, 0.95)";
+      break;
+    case "warning":
+      icon = '<i class="fas fa-exclamation-triangle"></i>';
+      bgColor = "rgba(255, 193, 7, 0.95)";
+      break;
+    default:
+      icon = '<i class="fas fa-info-circle"></i>';
+      bgColor = "rgba(47, 128, 237, 0.95)";
+  }
+
+  toast.innerHTML = `${icon} ${message}`;
+  toast.style.background = bgColor;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add("show"), 10);
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
+
+function getCurrentDateTime() {
+  const now = new Date();
+  return now.toLocaleString("ru-RU", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+// ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
 let steps = [];
 let current = 0;
 let answers = {};
+let currentChecklist = null;
 
 let minimizeWindow = () => console.warn("Tauri not ready");
 let closeWindow = () => console.warn("Tauri not ready");
 
-window.addEventListener("DOMContentLoaded", () => {
-  let appWindow = null;
-  if (window.__TAURI__ && window.__TAURI__.window) {
-    appWindow = window.__TAURI__.window.getCurrentWindow();
-    minimizeWindow = () => appWindow.minimize();
-    closeWindow = () => appWindow.close();
-
-    const header = document.querySelector(".header");
-    if (header) {
-      header.addEventListener("mousedown", (e) => {
-        if (e.target.closest(".close") || e.target.closest("#minimize")) return;
-        appWindow.startDragging();
-      });
-      header.addEventListener("dragstart", (e) => e.preventDefault());
-    }
-  } else {
-    console.warn("Tauri API not found. Running in browser?");
+// ========== ФУНКЦИЯ ВОЗВРАТА НА ГЛАВНУЮ (МЕНЮ) ==========
+function returnToHome() {
+  // Сбрасываем состояние
+  steps = [];
+  current = 0;
+  answers = {};
+  currentChecklist = null;
+  const stepElement = document.getElementById("step");
+  if (stepElement) {
+    stepElement.classList.remove("report-mode");
+    stepElement.innerHTML = "";
   }
+  // Показываем экран выбора, скрываем основной интерфейс
+  document.getElementById("checklist-selector").style.display = "flex";
+  document.getElementById("main-interface").style.display = "none";
+  showToast("Возврат к выбору чеклиста", "info");
+}
 
-  document.getElementById("minimize").onclick = () => minimizeWindow();
-  document.getElementById("close").onclick = () => closeWindow();
-
-  loadSteps();
-});
-
-async function loadSteps() {
+// ========== ФУНКЦИИ РАБОТЫ С ЧЕКЛИСТОМ ==========
+async function startChecklist(type) {
+  currentChecklist = type;
+  const filename =
+    type === "qa" ? "checklist-qa.json" : "checklist-marketing.json";
   try {
-    const res = await fetch("checklist.json");
+    const res = await fetch(filename);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     steps = await res.json();
+    current = 0;
+    answers = {};
+    // Скрываем экран выбора, показываем основной интерфейс
+    document.getElementById("checklist-selector").style.display = "none";
+    document.getElementById("main-interface").style.display = "block";
     renderStep();
   } catch (err) {
-    console.error("Ошибка загрузки checklist.json:", err);
+    console.error(`Ошибка загрузки ${filename}:`, err);
     document.getElementById("step").innerHTML =
-      `<p style="color:red;">Ошибка загрузки вопросов: ${err.message}</p>`;
+      `<p style="color:red;">Ошибка загрузки чеклиста: ${err.message}</p>`;
   }
 }
 
 function renderStep() {
+  if (!steps.length) return;
   const controls = document.querySelector(".controls");
   if (controls) controls.style.display = "flex";
 
@@ -104,10 +167,10 @@ function renderStep() {
       if (step.helpVideo) {
         const video = document.createElement("video");
         video.src = step.helpVideo;
-        video.controls = false;
-        video.autoplay = true;
-        video.muted = true;
-        video.loop = true;
+        video.controls = true;
+        video.autoplay = false;
+        video.muted = false;
+        video.loop = false;
         video.width = 320;
         video.className = "help-video";
         video.preload = "metadata";
@@ -117,7 +180,6 @@ function renderStep() {
       container.appendChild(helpDiv);
     }
 
-    // Поле ввода
     const input = document.createElement("input");
     input.placeholder = "Введите ответ...";
     input.className = "text-input";
@@ -127,62 +189,6 @@ function renderStep() {
     };
     container.appendChild(input);
   }
-}
-
-function showToast(message, type = "info") {
-  const toast = document.createElement("div");
-  toast.className = "toast-notification";
-
-  let icon = "";
-  let bgColor = "rgba(47, 128, 237, 0.95)";
-  switch (type) {
-    case "success":
-      icon = '<i class="fas fa-check-circle"></i>';
-      bgColor = "rgba(40, 167, 69, 0.95)";
-      break;
-    case "error":
-      icon = '<i class="fas fa-exclamation-circle"></i>';
-      bgColor = "rgba(220, 53, 69, 0.95)";
-      break;
-    case "warning":
-      icon = '<i class="fas fa-exclamation-triangle"></i>';
-      bgColor = "rgba(255, 193, 7, 0.95)";
-      break;
-    default:
-      icon = '<i class="fas fa-info-circle"></i>';
-      bgColor = "rgba(47, 128, 237, 0.95)";
-  }
-
-  toast.innerHTML = `${icon} ${message}`;
-  toast.style.background = bgColor;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.classList.add("show"), 10);
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 300);
-  }, 2000);
-}
-
-function escapeHtml(str) {
-  if (!str) return "";
-  return str.replace(/[&<>]/g, (m) => {
-    if (m === "&") return "&amp;";
-    if (m === "<") return "&lt;";
-    if (m === ">") return "&gt;";
-    return m;
-  });
-}
-
-function getCurrentDateTime() {
-  const now = new Date();
-  return now.toLocaleString("ru-RU", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
 }
 
 function showReport() {
@@ -197,20 +203,17 @@ function showReport() {
     `<i class="fas fa-calendar-alt"></i> Отчёт от ${getCurrentDateTime()}`,
   ];
 
-  // Перебираем все вопросы
   steps.forEach((step) => {
     const answer = answers[step.id];
-    if (answer === undefined) return; // вопрос не отвечен
+    if (answer === undefined) return;
 
     if (step.type === "radio") {
-      // Ищем выбранную опцию
       const selectedOpt = step.options.find((opt) => opt.value === answer);
       if (selectedOpt && selectedOpt.report) {
         reportLines.push(
           `<i class="fas fa-info-circle"></i> ${selectedOpt.report}`,
         );
       } else {
-        // fallback на случай отсутствия поля report
         reportLines.push(
           `<i class="fas fa-info-circle"></i> ${step.question}: ${answer}`,
         );
@@ -243,7 +246,6 @@ function showReport() {
     </div>
   `;
 
-  // Копирование без HTML‑тегов
   const plainText = reportLines
     .map((line) => line.replace(/<[^>]*>/g, ""))
     .join("\n");
@@ -253,19 +255,11 @@ function showReport() {
       .then(() => showToast("Отчёт скопирован", "success"))
       .catch(() => showToast("Ошибка копирования", "error"));
   };
-
-  document.querySelector(".reset-btn").onclick = () => resetTest();
-}
-function resetTest() {
-  answers = {};
-  current = 0;
-  const stepElement = document.getElementById("step");
-  stepElement.classList.remove("report-mode");
-  renderStep();
-  showToast("Данные сброшены", "info");
+  document.querySelector(".reset-btn").onclick = () => returnToHome();
 }
 
 function isCurrentStepAnswered() {
+  if (!steps.length) return false;
   const step = steps[current];
   if (!step) return false;
   if (step.type === "radio") return answers[step.id] !== undefined;
@@ -276,7 +270,43 @@ function isCurrentStepAnswered() {
   return true;
 }
 
+// ========== ИНИЦИАЛИЗАЦИЯ И ОБРАБОТЧИКИ ==========
+window.addEventListener("DOMContentLoaded", () => {
+  let appWindow = null;
+  if (window.__TAURI__ && window.__TAURI__.window) {
+    appWindow = window.__TAURI__.window.getCurrentWindow();
+    minimizeWindow = () => appWindow.minimize();
+    closeWindow = () => appWindow.close();
+
+    const header = document.querySelector(".header");
+    if (header) {
+      header.addEventListener("mousedown", (e) => {
+        if (
+          e.target.closest(".close") ||
+          e.target.closest("#minimize") ||
+          e.target.closest(".menu")
+        )
+          return;
+        appWindow.startDragging();
+      });
+      header.addEventListener("dragstart", (e) => e.preventDefault());
+    }
+  } else {
+    console.warn("Tauri API not found. Running in browser?");
+  }
+
+  document.getElementById("minimize").onclick = () => minimizeWindow();
+  document.getElementById("close").onclick = () => closeWindow();
+  document.getElementById("menu").onclick = () => returnToHome();
+
+  document.getElementById("btn-qa").onclick = () => startChecklist("qa");
+  document.getElementById("btn-marketing").onclick = () =>
+    startChecklist("marketing");
+});
+
+// Навигация (обработчики назначаются один раз)
 document.getElementById("next").onclick = () => {
+  if (!steps.length) return;
   if (!isCurrentStepAnswered()) {
     showToast("Выберите ответ перед переходом", "warning");
     return;
@@ -290,6 +320,7 @@ document.getElementById("next").onclick = () => {
 };
 
 document.getElementById("prev").onclick = () => {
+  if (!steps.length) return;
   if (current > 0) {
     current--;
     renderStep();
