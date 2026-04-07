@@ -37,8 +37,17 @@ jobs:
       - name: Debug (macOS)
         if: matrix.platform == 'macos-latest'
         run: |
-          echo "Bundle path: ${{ steps.tauri_build.outputs.bundlePath }}"
-          find . -name "*.dmg" -o -name "*.app" | head -20
+          |
+          echo "=== Current directory ==="
+          pwd
+          echo "=== src-tauri/target/release ==="
+          ls -la src-tauri/target/release/ || true
+          echo "=== src-tauri/target/release/bundle ==="
+          ls -la src-tauri/target/release/bundle/ || true
+          echo "=== Recursive search for .dmg and .app ==="
+          find src-tauri -name "*.dmg" -o -name "*.app" 2>/dev/null | head -20
+          echo "=== Build Tauri Action outputs ==="
+          echo "bundlePath: ${{ steps.tauri_build.outputs.bundlePath }}"
 
       - name: Upload Windows artifact
         if: matrix.platform == 'windows-latest'
