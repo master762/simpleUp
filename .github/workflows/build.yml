@@ -25,6 +25,10 @@ jobs:
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install create-dmg (macOS only)
+        if: matrix.platform == 'macos-latest'
+        run: brew install create-dmg
+
       - name: Install frontend dependencies
         run: npm install
 
@@ -35,5 +39,5 @@ jobs:
         with:
           tagName: v0.1.0
           releaseName: "Checklist v0.1.0"
-          releaseBody: "Автоматическая сборка приложения для Windows и macOS."
+          releaseBody: "Автоматическая сборка для Windows и macOS."
           releaseDraft: false
