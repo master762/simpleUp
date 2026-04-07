@@ -49,5 +49,5 @@ jobs:
         with:
           name: checklist-macos-bundle
           path: |
-            src-tauri/target/release/bundle/dmg/*.dmg
-            src-tauri/target/release/bundle/macos/*.app
+            src-tauri/target/**/release/bundle/dmg/*.dmg
+            src-tauri/target/**/release/bundle/macos/*.app
