@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Checklist Tester</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <div class="header">
+        <div class="title">QA Checklist</div>
+        <div class="close" id="close"><i class="fas fa-times"></i></div>
+        <span id="minimize"><i class="fas fa-window-minimize"></i></span>
+      </div>
+      <div id="step"></div>
+      <div class="controls">
+        <button class="nav-btn" id="prev">
+          <i class="fas fa-arrow-left"></i> Назад
+        </button>
+        <button class="nav-btn" id="next">
+          Далее <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>
