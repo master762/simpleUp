@@ -34,6 +34,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Debug (macOS)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          echo "Bundle path: ${{ steps.tauri_build.outputs.bundlePath }}"
+          find . -name "*.dmg" -o -name "*.app" | head -20
+
       - name: Upload Windows artifact
         if: matrix.platform == 'windows-latest'
         uses: actions/upload-artifact@v4
@@ -48,4 +54,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: checklist-macos-bundle
-          path: src-tauri/target/release/bundle/
+          path: ${{ steps.tauri_build.outputs.bundlePath }}
