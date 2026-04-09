@@ -168,7 +168,7 @@ function renderStep() {
         const video = document.createElement("video");
         video.src = step.helpVideo;
         video.controls = true;
-        video.autoplay = false;
+        video.autoplay = true;
         video.muted = false;
         video.loop = false;
         video.width = 320;

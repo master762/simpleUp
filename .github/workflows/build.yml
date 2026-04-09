@@ -39,5 +39,7 @@ jobs:
         with:
           tagName: v0.1.0
           releaseName: "Checklist v0.1.0"
-          releaseBody: "Автоматическая сборка для Windows и macOS."
+          releaseBody: "Автоматическая сборка"
           releaseDraft: false
+          includeDebug: false
+          includeRelease: true
