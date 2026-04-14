@@ -13,11 +13,11 @@
     "windows": [
       {
         "title": "Checklist",
-        "width": 400,
-        "height": 600,
-        "alwaysOnTop": true,
+        "width": 800,
+        "height": 800,
         "decorations": false,
-        "transparent": true
+        "transparent": true,
+        "alwaysOnTop": true
       }
     ],
     "security": {

@@ -12,146 +12,19 @@
   <body>
     <div id="app">
       <div class="header">
-        <div class="title">ПростоВверх</div>
+        <div id="back-to-main" class="title">ПростоВверх</div>
         <div class="buttons">
-          <div class="menu" id="menu"><i class="fas fa-bars"></i></div>
           <div class="fullscreen" id="fullscreen">
             <i class="fas fa-compress"></i>
           </div>
           <div class="close" id="close"><i class="fas fa-times"></i></div>
-          <span id="minimize"><i class="fas fa-window-minimize"></i></span>
-        </div>
-      </div>
-
-      <!-- Главная страница -->
-      <div id="main-page" class="main-page">
-        <h1 class="main-title">Добро пожаловать</h1>
-        <div class="cards-grid">
-          <div class="menu-card" data-section="checklists">
-            <i class="fas fa-clipboard-list"></i>
-            <h2>Чеклисты</h2>
-            <p>QA, маркетинг, приёмка сайта — готовые списки для проверки</p>
-          </div>
-          <div class="menu-card" data-section="knowledge">
-            <i class="fas fa-database"></i>
-            <h2>База знаний</h2>
-            <p>Инструкции, гайды и полезные материалы</p>
-          </div>
-          <div class="menu-card" data-section="exam">
-            <i class="fas fa-graduation-cap"></i>
-            <h2>Экзамен</h2>
-            <p>Проверьте свои знания и получите сертификат</p>
+          <div id="minimize">
+            <i class="fa fa-window-minimize" aria-hidden="true"></i>
           </div>
         </div>
       </div>
-
-      <!-- Экран выбора раздела базы знаний -->
-      <div
-        id="knowledge-selector"
-        class="selector-screen"
-        style="display: none"
-      >
-        <div class="back-button" id="back-to-main-knowledge">
-          <i class="fas fa-arrow-left"></i> На главную
-        </div>
-        <h2>База знаний</h2>
-        <button id="btn-seo" class="selector-btn">
-          <i class="fas fa-chart-line"></i> SEO
-        </button>
-        <button id="btn-copywriting" class="selector-btn">
-          <i class="fas fa-pen-fancy"></i> Копирайтинг
-        </button>
-        <button id="btn-marketing-knowledge" class="selector-btn">
-          <i class="fas fa-chart-simple"></i> Маркетинг
-        </button>
-      </div>
-
-      <!-- Экран выбора типа контента для SEO -->
-      <div id="seo-type-selector" class="selector-screen" style="display: none">
-        <div class="back-button" id="back-to-knowledge-selector">
-          <i class="fas fa-arrow-left"></i> Назад к разделам
-        </div>
-        <h2>SEO — обучение</h2>
-        <button id="btn-seo-videos" class="selector-btn">
-          <i class="fas fa-video"></i> Видеолекции
-        </button>
-        <button id="btn-seo-topics" class="selector-btn">
-          <i class="fas fa-book-open"></i> Статьи и тесты
-        </button>
-      </div>
-
-      <!-- Список видеолекций -->
-      <div
-        id="seo-videos-list"
-        class="knowledge-articles"
-        style="display: none"
-      >
-        <div class="back-button" id="back-to-seo-type">
-          <i class="fas fa-arrow-left"></i> Назад к выбору
-        </div>
-        <h2 class="category-title">Видеолекции по SEO</h2>
-        <div id="videos-container" class="articles-list"></div>
-      </div>
-
-      <!-- Список тем (статей) -->
-      <div
-        id="seo-topics-list"
-        class="knowledge-articles"
-        style="display: none"
-      >
-        <div class="back-button" id="back-to-seo-type-from-topics">
-          <i class="fas fa-arrow-left"></i> Назад к выбору
-        </div>
-        <h2 class="category-title">Статьи и тесты</h2>
-        <div id="topics-container" class="articles-list"></div>
-      </div>
-
-      <!-- Страница статьи с тестом -->
-      <div
-        id="seo-article-page"
-        class="knowledge-articles"
-        style="display: none"
-      >
-        <div class="back-button" id="back-to-topics-list">
-          <i class="fas fa-arrow-left"></i> Назад к статьям
-        </div>
-        <div id="article-content"></div>
-        <div id="test-section" class="test-section"></div>
-      </div>
-
-      <!-- Остальные экраны (чеклисты, основной интерфейс) без изменений -->
-      <div
-        id="checklist-selector"
-        class="selector-screen"
-        style="display: none"
-      >
-        <div class="back-button" id="back-to-main-checklist">
-          <i class="fas fa-arrow-left"></i> На главную
-        </div>
-        <h2>Выберите чеклист</h2>
-        <button id="btn-qa" class="selector-btn">
-          <i class="fas fa-check-circle"></i> QA Checklist
-        </button>
-        <button id="btn-marketing" class="selector-btn">
-          <i class="fas fa-chart-line"></i> Marketing Audit
-        </button>
-        <button id="btn-acceptance" class="selector-btn">
-          <i class="fas fa-check-double"></i> Приёмка сайта
-        </button>
-      </div>
-
-      <div id="main-interface" style="display: none">
-        <div id="step"></div>
-        <div class="controls">
-          <button class="nav-btn" id="prev">
-            <i class="fas fa-arrow-left"></i> Назад
-          </button>
-          <button class="nav-btn" id="next">
-            Далее <i class="fas fa-arrow-right"></i>
-          </button>
-        </div>
-      </div>
+      <div id="content"></div>
     </div>
-    <script src="main.js"></script>
+    <script src="main.js" type="module"></script>
   </body>
 </html>

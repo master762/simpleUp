@@ -1,4 +1,4 @@
-// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+// ========== ОБЩИЕ ФУНКЦИИ ==========
 function escapeHtml(str) {
   if (!str) return "";
   return str.replace(/[&<>]/g, (m) => {
@@ -65,13 +65,14 @@ let minimizeWindow = () => console.warn("Tauri not ready");
 let closeWindow = () => console.warn("Tauri not ready");
 let isFullscreen = false;
 
-// ========== ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ПОЛНОЭКРАННОГО РЕЖИМА ==========
+// ========== УПРАВЛЕНИЕ ОКНОМ (TAURI) ==========
 async function toggleFullscreen() {
   if (window.__TAURI__ && window.__TAURI__.window) {
     const appWindow = window.__TAURI__.window.getCurrentWindow();
     isFullscreen = await appWindow.isFullscreen();
     await appWindow.setFullscreen(!isFullscreen);
     isFullscreen = !isFullscreen;
+
     const fullscreenBtn = document.getElementById("fullscreen");
     if (fullscreenBtn) {
       fullscreenBtn.innerHTML = isFullscreen
@@ -93,49 +94,183 @@ async function toggleFullscreen() {
   }
 }
 
-// ========== ФУНКЦИЯ ВОЗВРАТА НА ГЛАВНУЮ ==========
-function returnToHome() {
-  steps = [];
-  current = 0;
-  answers = {};
-  currentChecklist = null;
-  const stepElement = document.getElementById("step");
-  if (stepElement) {
-    stepElement.classList.remove("report-mode");
-    stepElement.innerHTML = "";
+function setHeaderTheme(theme) {
+  const header = document.querySelector(".header");
+  const app = document.getElementById("app");
+  if (!header) return;
+
+  header.classList.remove("header-home", "header-checklist");
+
+  if (theme === "home") {
+    header.classList.add("header-home");
+    app.classList.remove("checklist-mode");
+  } else if (theme === "checklist") {
+    header.classList.add("header-checklist");
+    app.classList.add("checklist-mode");
   }
-  document.getElementById("main-page").style.display = "flex";
-  document.getElementById("checklist-selector").style.display = "none";
-  document.getElementById("main-interface").style.display = "none";
-  document.getElementById("knowledge-selector").style.display = "none";
-  document.getElementById("seo-type-selector").style.display = "none";
-  document.getElementById("seo-videos-list").style.display = "none";
-  document.getElementById("seo-topics-list").style.display = "none";
-  document.getElementById("seo-article-page").style.display = "none";
-  showToast("Главное меню", "info");
 }
 
-// ========== БАЗА ЗНАНИЙ (НОВАЯ ВЕРСИЯ) ==========
+// ❌ УБРАНО: setAlwaysOnTop(true)
+async function setChecklistWindow() {
+  if (!window.__TAURI__?.window) return;
+
+  const appWindow = window.__TAURI__.window.getCurrentWindow();
+
+  if (await appWindow.isFullscreen()) {
+    await appWindow.setFullscreen(false);
+  }
+
+  if (await appWindow.isMaximized()) {
+    await appWindow.unmaximize();
+  }
+
+  await appWindow.setSize({ width: 400, height: 600 });
+
+  await appWindow.setDecorations(false);
+  await appWindow.setShadow(false);
+}
+
+// ❌ УБРАНО: setAlwaysOnTop(false)
+async function setDefaultWindow() {
+  if (!window.__TAURI__?.window) return;
+
+  const appWindow = window.__TAURI__.window.getCurrentWindow();
+
+  if (!(await appWindow.isFullscreen())) {
+    await appWindow.setFullscreen(true);
+  }
+}
+
+function setBodyMode(mode) {
+  document.body.classList.remove("body-default", "body-transparent");
+
+  if (mode === "transparent") {
+    document.body.classList.add("body-transparent");
+  } else {
+    document.body.classList.add("body-default");
+  }
+}
+
+// ========== ЗАГРУЗЧИК СТРАНИЦ ==========
+async function loadPage(page) {
+  const contentDiv = document.getElementById("content");
+
+  try {
+    const res = await fetch(`pages/${page}.html`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const html = await res.text();
+    contentDiv.innerHTML = html;
+
+    if (page === "home") {
+      setHeaderTheme("home");
+      setDefaultWindow();
+      setBodyMode("default");
+      initHomePage();
+    } else if (page === "knowledge") {
+      setHeaderTheme("home");
+      setDefaultWindow();
+      setBodyMode("default");
+      initKnowledgePage();
+    } else if (page === "checklist") {
+      setHeaderTheme("checklist");
+      setChecklistWindow();
+      setBodyMode("transparent");
+      initChecklistPage();
+    }
+  } catch (err) {
+    contentDiv.innerHTML = `<p style="color:red;">Ошибка загрузки: ${err.message}</p>`;
+  }
+}
+
+// ========== ИНИЦИАЛИЗАЦИЯ ГЛАВНОЙ СТРАНИЦЫ ==========
+function initHomePage() {
+  const checklistCard = document.querySelector(
+    ".menu-card[data-section='checklists']",
+  );
+  const knowledgeCard = document.querySelector(
+    ".menu-card[data-section='knowledge']",
+  );
+  const examCard = document.querySelector(".menu-card[data-section='exam']");
+
+  if (checklistCard) checklistCard.onclick = () => loadPage("checklist");
+  if (knowledgeCard) knowledgeCard.onclick = () => loadPage("knowledge");
+  if (examCard)
+    examCard.onclick = () => showToast("Экзамен будет доступен позже", "info");
+}
+
+// ========== ИНИЦИАЛИЗАЦИЯ БАЗЫ ЗНАНИЙ ==========
+function initKnowledgePage() {
+  const knowledgeSelector = document.getElementById("knowledge-selector");
+  const seoTypeSelector = document.getElementById("seo-type-selector");
+  const seoVideosList = document.getElementById("seo-videos-list");
+  const seoTopicsList = document.getElementById("seo-topics-list");
+  const seoArticlePage = document.getElementById("seo-article-page");
+
+  document.getElementById("btn-seo").onclick = () => {
+    knowledgeSelector.style.display = "none";
+    seoTypeSelector.style.display = "flex";
+  };
+
+  document.getElementById("btn-copywriting").onclick = () =>
+    showToast("Копирайтинг в разработке", "info");
+
+  document.getElementById("btn-marketing-knowledge").onclick = () =>
+    showToast("Маркетинг в разработке", "info");
+
+  document.getElementById("back-to-knowledge-selector").onclick = () => {
+    seoTypeSelector.style.display = "none";
+    knowledgeSelector.style.display = "flex";
+  };
+
+  document.getElementById("btn-seo-videos").onclick = () => {
+    seoTypeSelector.style.display = "none";
+    seoVideosList.style.display = "block";
+    loadSEOContent("videos");
+  };
+
+  document.getElementById("btn-seo-topics").onclick = () => {
+    seoTypeSelector.style.display = "none";
+    seoTopicsList.style.display = "block";
+    loadSEOContent("topics");
+  };
+
+  document.getElementById("back-to-seo-type").onclick = () => {
+    seoVideosList.style.display = "none";
+    seoTypeSelector.style.display = "flex";
+  };
+
+  document.getElementById("back-to-seo-type-from-topics").onclick = () => {
+    seoTopicsList.style.display = "none";
+    seoTypeSelector.style.display = "flex";
+  };
+
+  document.getElementById("back-to-topics-list").onclick = () => {
+    seoArticlePage.style.display = "none";
+    seoTopicsList.style.display = "block";
+  };
+}
+
 async function loadSEOContent(type) {
   if (type === "videos") {
     try {
-      const res = await fetch("seo-videos.json");
+      const res = await fetch("data/seo-videos.json");
       if (!res.ok) throw new Error("Ошибка загрузки видео");
       const videos = await res.json();
       renderVideoList(videos);
     } catch (err) {
       document.getElementById("videos-container").innerHTML =
-        `<p style="color:red;">${err.message}. Убедитесь, что файл seo-videos.json существует.</p>`;
+        `<p style="color:red;">${err.message}. Убедитесь, что файл data/seo-videos.json существует.</p>`;
     }
   } else if (type === "topics") {
     try {
-      const res = await fetch("seo-topics.json");
+      const res = await fetch("data/seo-topics.json");
       if (!res.ok) throw new Error("Ошибка загрузки статей");
       const topics = await res.json();
       renderTopicsList(topics);
     } catch (err) {
       document.getElementById("topics-container").innerHTML =
-        `<p style="color:red;">${err.message}. Убедитесь, что файл seo-topics.json существует.</p>`;
+        `<p style="color:red;">${err.message}. Убедитесь, что файл data/seo-topics.json существует.</p>`;
     }
   }
 }
@@ -153,7 +288,9 @@ function renderVideoList(videos) {
         ${video.skills.map((skill) => `<span class="skill-tag">${escapeHtml(skill)}</span>`).join("")}
       </div>
       <div class="video-wrapper">
-        <iframe src="${video.url}" frameborder="0" allowfullscreen></iframe>
+       <video controls>
+          <source src="${video.url}" type="video/mp4">
+        </video>      
       </div>
     `;
     container.appendChild(card);
@@ -207,7 +344,6 @@ function renderArticle(topic) {
     }
   });
 
-  // Тест
   const testDiv = document.getElementById("test-section");
   testDiv.innerHTML = "<h3>Проверьте знания</h3>";
   topic.questions.forEach((q, idx) => {
@@ -257,15 +393,43 @@ function checkTest(questions) {
   resultsDiv.insertAdjacentHTML("beforeend", resultHtml);
 }
 
-// ========== ФУНКЦИИ РАБОТЫ С ЧЕКЛИСТОМ ==========
+// ========== ИНИЦИАЛИЗАЦИЯ ЧЕКЛИСТОВ ==========
+function initChecklistPage() {
+  const checklistSelector = document.getElementById("checklist-selector");
+  const mainInterface = document.getElementById("main-interface");
+
+  document.getElementById("btn-qa").onclick = () => startChecklist("qa");
+  document.getElementById("btn-marketing").onclick = () =>
+    startChecklist("marketing");
+  document.getElementById("btn-acceptance").onclick = () =>
+    startChecklist("acceptance");
+
+  // Обработчики навигации внутри чеклиста
+  document.getElementById("next").onclick = () => {
+    if (!steps.length) return;
+    if (!isCurrentStepAnswered()) {
+      showToast("Выберите ответ перед переходом", "warning");
+      return;
+    }
+    if (current < steps.length - 1) {
+      current++;
+      renderStep();
+    } else {
+      showReport();
+    }
+  };
+  document.getElementById("prev").onclick = () => {
+    if (!steps.length) return;
+    if (current > 0) {
+      current--;
+      renderStep();
+    }
+  };
+}
+
 async function startChecklist(type) {
   currentChecklist = type;
-  const filename =
-    type === "qa"
-      ? "checklist-qa.json"
-      : type === "marketing"
-        ? "checklist-marketing.json"
-        : "checklist-acceptance.json";
+  const filename = `data/checklist-${type}.json`;
   try {
     const res = await fetch(filename);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -407,7 +571,18 @@ function showReport() {
       .then(() => showToast("Отчёт скопирован", "success"))
       .catch(() => showToast("Ошибка копирования", "error"));
   };
-  document.querySelector(".reset-btn").onclick = () => returnToHome();
+  document.querySelector(".reset-btn").onclick = () => {
+    // Сброс: возвращаемся к выбору чеклиста
+    document.getElementById("checklist-selector").style.display = "flex";
+    document.getElementById("main-interface").style.display = "none";
+    steps = [];
+    current = 0;
+    answers = {};
+    currentChecklist = null;
+    const stepElem = document.getElementById("step");
+    if (stepElem) stepElem.classList.remove("report-mode");
+    showToast("Возврат к выбору чеклиста", "info");
+  };
 }
 
 function isCurrentStepAnswered() {
@@ -422,7 +597,7 @@ function isCurrentStepAnswered() {
   return true;
 }
 
-// ========== ИНИЦИАЛИЗАЦИЯ И ОБРАБОТЧИКИ ==========
+// ========== ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ==========
 window.addEventListener("DOMContentLoaded", () => {
   let appWindow = null;
   if (window.__TAURI__ && window.__TAURI__.window) {
@@ -435,8 +610,8 @@ window.addEventListener("DOMContentLoaded", () => {
         if (
           e.target.closest(".close") ||
           e.target.closest("#minimize") ||
-          e.target.closest(".menu") ||
-          e.target.closest(".fullscreen")
+          e.target.closest(".fullscreen") ||
+          e.target.closest(".title")
         )
           return;
         appWindow.startDragging();
@@ -465,93 +640,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("minimize").onclick = () => minimizeWindow();
   document.getElementById("close").onclick = () => closeWindow();
-  document.getElementById("menu").onclick = () => returnToHome();
   document.getElementById("fullscreen").onclick = () => toggleFullscreen();
-
-  // Главная страница
-  document.querySelector(".menu-card[data-section='checklists']").onclick =
-    () => {
-      document.getElementById("main-page").style.display = "none";
-      document.getElementById("checklist-selector").style.display = "flex";
-      document.getElementById("knowledge-selector").style.display = "none";
-      document.getElementById("seo-type-selector").style.display = "none";
-    };
-  document.querySelector(".menu-card[data-section='knowledge']").onclick =
-    () => {
-      document.getElementById("main-page").style.display = "none";
-      document.getElementById("checklist-selector").style.display = "none";
-      document.getElementById("knowledge-selector").style.display = "flex";
-      document.getElementById("seo-type-selector").style.display = "none";
-    };
-  document.querySelector(".menu-card[data-section='exam']").onclick = () =>
-    showToast("Экзамен будет доступен позже", "info");
-
-  // База знаний – новая логика
-  document.getElementById("btn-seo").onclick = () => {
-    document.getElementById("knowledge-selector").style.display = "none";
-    document.getElementById("seo-type-selector").style.display = "flex";
-  };
-  document.getElementById("btn-copywriting").onclick = () =>
-    showToast("Копирайтинг в разработке", "info");
-  document.getElementById("btn-marketing-knowledge").onclick = () =>
-    showToast("Маркетинг в разработке", "info");
-  document.getElementById("back-to-knowledge-selector").onclick = () => {
-    document.getElementById("seo-type-selector").style.display = "none";
-    document.getElementById("knowledge-selector").style.display = "flex";
-  };
-  document.getElementById("btn-seo-videos").onclick = () => {
-    document.getElementById("seo-type-selector").style.display = "none";
-    document.getElementById("seo-videos-list").style.display = "block";
-    loadSEOContent("videos");
-  };
-  document.getElementById("btn-seo-topics").onclick = () => {
-    document.getElementById("seo-type-selector").style.display = "none";
-    document.getElementById("seo-topics-list").style.display = "block";
-    loadSEOContent("topics");
-  };
-  document.getElementById("back-to-seo-type").onclick = () => {
-    document.getElementById("seo-videos-list").style.display = "none";
-    document.getElementById("seo-type-selector").style.display = "flex";
-  };
-  document.getElementById("back-to-seo-type-from-topics").onclick = () => {
-    document.getElementById("seo-topics-list").style.display = "none";
-    document.getElementById("seo-type-selector").style.display = "flex";
-  };
-  document.getElementById("back-to-topics-list").onclick = () => {
-    document.getElementById("seo-article-page").style.display = "none";
-    document.getElementById("seo-topics-list").style.display = "block";
-  };
-  document.getElementById("back-to-main-knowledge").onclick = () =>
-    returnToHome();
-
-  // Чеклисты
-  document.getElementById("back-to-main-checklist").onclick = () =>
-    returnToHome();
-  document.getElementById("btn-qa").onclick = () => startChecklist("qa");
-  document.getElementById("btn-marketing").onclick = () =>
-    startChecklist("marketing");
-  document.getElementById("btn-acceptance").onclick = () =>
-    startChecklist("acceptance");
+  const backToMain = document.getElementById("back-to-main");
+  if (backToMain) {
+    backToMain.onclick = () => loadPage("home");
+  }
+  loadPage("home");
 });
-
-// Навигация внутри чеклиста
-document.getElementById("next").onclick = () => {
-  if (!steps.length) return;
-  if (!isCurrentStepAnswered()) {
-    showToast("Выберите ответ перед переходом", "warning");
-    return;
-  }
-  if (current < steps.length - 1) {
-    current++;
-    renderStep();
-  } else {
-    showReport();
-  }
-};
-document.getElementById("prev").onclick = () => {
-  if (!steps.length) return;
-  if (current > 0) {
-    current--;
-    renderStep();
-  }
-};

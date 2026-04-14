@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "title": "Как работать с Топвизором",
+    "description": "описание",
+    "skills": ["в разработке", "в разработке", "в разработке"],
+    "url": "assets/videos/video-knowledge/topvisor.mp4"
+  },
+  {
+    "id": 2,
+    "title": "Как работать с Топвизором",
+    "description": "описание",
+    "skills": ["в разработке", "в разработке", "в разработке"],
+    "url": "assets/videos/video-knowledge/12.02.2026.webm"
+  },
+  {
+    "id": 3,
+    "title": "Как работать с Топвизором",
+    "description": "описание",
+    "skills": ["в разработке", "в разработке", "в разработке"],
+    "url": "assets/videos/video-knowledge/12.02.2026(1).webm"
+  },
+  {
+    "id": 4,
+    "title": "Как работать с Топвизором",
+    "description": "описание",
+    "skills": ["в разработке", "в разработке", "в разработке"],
+    "url": "assets/videos/video-knowledge/17.02.26.webm"
+  },
+  {
+    "id": 5,
+    "title": "Как работать с Топвизором",
+    "description": "описание",
+    "skills": ["в разработке", "в разработке", "в разработке"],
+    "url": "assets/videos/video-knowledge/17.02.26(1).webm"
+  },
+  {
+    "id": 6,
+    "title": "Как работать с Топвизором",
+    "description": "описание",
+    "skills": ["в разработке", "в разработке", "в разработке"],
+    "url": "assets/videos/video-knowledge/17.02.26(2).webm"
+  }
+]
